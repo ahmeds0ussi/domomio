@@ -1,0 +1,532 @@
+<div class="home">
+
+  <!-- ==================== NAVBAR ==================== -->
+  <nav class="navbar" [class.scrolled]="navScrolled">
+    <div class="nav-inner">
+      <a routerLink="/" class="nav-logo" (click)="scrollToTop()">
+        <img src="assets/domomio-logo.png" alt="Logo">
+      </a>
+
+      <ul class="nav-links">
+        <li><a routerLink="/" (click)="scrollToTop()" [class.active]="currentSection === 'home'">{{ 'nav.home' | t }}</a></li>
+        <li><a routerLink="/annonces">{{ 'nav.properties' | t }}</a></li>
+        <li><a (click)="scrollTo('services')" style="cursor:pointer" [class.active]="currentSection === 'services'">{{ 'nav.services' | t }}</a></li>
+        <li><a (click)="scrollTo('about')" style="cursor:pointer" [class.active]="currentSection === 'about'">{{ 'nav.about' | t }}</a></li>
+        <li><a (click)="scrollTo('contact')" style="cursor:pointer" [class.active]="currentSection === 'contact'">{{ 'nav.contact' | t }}</a></li>
+      </ul>
+
+      <!-- Globe language picker -->
+      <div class="lang-globe" (click)="$event.stopPropagation(); langDropdownOpen = !langDropdownOpen">
+        <button class="lang-globe-btn" [class.open]="langDropdownOpen" [title]="translate.lang.toUpperCase()">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="2" y1="12" x2="22" y2="12"/>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+          </svg>
+          <span class="lang-current">{{ translate.lang.toUpperCase() }}</span>
+        </button>
+        <div class="lang-dropdown" [class.open]="langDropdownOpen">
+          <button (click)="translate.setLang('fr'); langDropdownOpen=false" [class.active]="translate.lang==='fr'">
+            <span>🇫🇷</span> Français
+          </button>
+          <button (click)="translate.setLang('en'); langDropdownOpen=false" [class.active]="translate.lang==='en'">
+            <span>🇬🇧</span> English
+          </button>
+          <button (click)="translate.setLang('ar'); langDropdownOpen=false" [class.active]="translate.lang==='ar'">
+            <span>🇹🇳</span> العربية
+          </button>
+        </div>
+      </div>
+
+      <div class="nav-cta" *ngIf="!user">
+        <a routerLink="/login" class="btn-nav-login">{{ 'nav.login' | t }}</a>
+        <a routerLink="/register" class="btn-nav-signup">{{ 'nav.register' | t }}</a>
+      </div>
+
+      <div class="user-menu" *ngIf="user" (click)="toggleDropdown()">
+        <div class="user-avatar">
+          <img *ngIf="user.avatar" [src]="user.avatar | assetUrl" [alt]="user.prenom" />
+          <span *ngIf="!user.avatar" class="avatar-initials">{{ getInitiales() }}</span>
+        </div>
+        <div class="user-info">
+          <span class="user-name">{{ user.prenom }} {{ user.nom }}</span>
+          <span class="user-role">{{ user.role }}</span>
+        </div>
+        <svg class="chevron" [class.open]="dropdownOpen" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+        <div class="user-dropdown" [class.open]="dropdownOpen">
+          <a [routerLink]="getDashboardRoute()" class="dropdown-item">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            {{ 'nav.dashboard' | t }}
+          </a>
+          <button class="dropdown-item logout" (click)="deconnexion()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            {{ 'nav.logout' | t }}
+          </button>
+        </div>
+      </div>
+
+      <button class="burger" (click)="mobileMenuOpen = !mobileMenuOpen" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+
+    <div class="mobile-menu" [class.open]="mobileMenuOpen">
+      <a routerLink="/" (click)="mobileMenuOpen=false; scrollToTop()">{{ 'nav.home' | t }}</a>
+      <a routerLink="/annonces" (click)="mobileMenuOpen=false">{{ 'nav.properties' | t }}</a>
+      <a (click)="scrollTo('services'); mobileMenuOpen=false">{{ 'nav.services' | t }}</a>
+      <a (click)="scrollTo('about'); mobileMenuOpen=false">{{ 'nav.about' | t }}</a>
+      <a (click)="scrollTo('contact'); mobileMenuOpen=false">{{ 'nav.contact' | t }}</a>
+      <!-- Mobile lang switcher -->
+      <div class="mobile-lang">
+        <button [class.active]="translate.lang==='fr'" (click)="translate.setLang('fr'); mobileMenuOpen=false">🇫🇷 Français</button>
+        <button [class.active]="translate.lang==='en'" (click)="translate.setLang('en'); mobileMenuOpen=false">🇬🇧 English</button>
+        <button [class.active]="translate.lang==='ar'" (click)="translate.setLang('ar'); mobileMenuOpen=false">🇹🇳 العربية</button>
+      </div>
+      <ng-container *ngIf="!user">
+        <a routerLink="/login" (click)="mobileMenuOpen=false">{{ 'nav.login' | t }}</a>
+        <a routerLink="/register" (click)="mobileMenuOpen=false" class="mobile-signup">{{ 'nav.register' | t }}</a>
+      </ng-container>
+      <ng-container *ngIf="user">
+        <a [routerLink]="getDashboardRoute()" (click)="mobileMenuOpen=false">{{ 'nav.dashboard' | t }}</a>
+        <button (click)="deconnexion(); mobileMenuOpen=false" class="mobile-logout">{{ 'nav.logout' | t }}</button>
+      </ng-container>
+    </div>
+  </nav>
+
+  <!-- ==================== HERO ==================== -->
+  <section class="hero" [style.--parallax-y.px]="heroParallaxOffset">
+    <video #heroVideo class="hero-video" autoplay muted loop playsinline>
+      <source src="assets/videos/vedio.mp4" type="video/mp4" />
+    </video>
+    <div class="hero-gradient"></div>
+    <div class="hero-grain" aria-hidden="true"></div>
+
+    <div class="hero-content">
+      <div class="hero-eyebrow hero-reveal hero-reveal-1">
+        <span class="eyebrow-dot"></span>
+        {{ 'hero.eyebrow' | t }}
+      </div>
+
+      <h1 class="hero-title hero-reveal hero-reveal-2">
+        <span class="title-line">{{ 'hero.title1' | t }}</span>
+        <span class="title-line"><em class="hero-accent">{{ 'hero.title2' | t }}</em></span>
+        <span class="title-line">{{ 'hero.title3' | t }}</span>
+      </h1>
+
+      <p class="hero-desc hero-reveal hero-reveal-3">
+        {{ 'hero.desc1' | t }}<br>
+        {{ 'hero.desc2' | t }}
+      </p>
+
+      <div class="search-box hero-reveal hero-reveal-4">
+        <div class="search-tabs">
+          <button [class.active]="recherche.type_transaction === 'vente'" (click)="recherche.type_transaction = 'vente'">{{ 'search.buy' | t }}</button>
+          <button [class.active]="recherche.type_transaction === 'location'" (click)="recherche.type_transaction = 'location'">{{ 'search.rent' | t }}</button>
+          <button [class.active]="recherche.type_transaction === 'location_vacances'" (click)="recherche.type_transaction = 'location_vacances'">{{ 'search.vacation' | t }}</button>
+        </div>
+        <div class="search-fields">
+          <div class="search-field">
+            <label>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+              {{ 'search.typeLabel' | t }}
+            </label>
+            <select [(ngModel)]="recherche.type_bien">
+              <option value="">{{ 'search.allTypes' | t }}</option>
+              <option value="appartement">{{ 'search.apt' | t }}</option>
+              <option value="maison">{{ 'search.house' | t }}</option>
+              <option value="villa">{{ 'search.villa' | t }}</option>
+              <option value="bureau">{{ 'search.office' | t }}</option>
+              <option value="local_commercial">{{ 'search.commercial' | t }}</option>
+              <option value="terrain">{{ 'search.land' | t }}</option>
+              <option value="ferme">{{ 'search.farm' | t }}</option>
+            </select>
+          </div>
+          <div class="search-sep"></div>
+          <div class="search-field">
+            <label>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              {{ 'search.locationLabel' | t }}
+            </label>
+            <select [(ngModel)]="recherche.gouvernorat">
+              <option value="">{{ 'search.allTunisia' | t }}</option>
+              <option *ngFor="let g of gouvernorats" [value]="g">{{ g }}</option>
+            </select>
+          </div>
+          <button class="search-btn" (click)="rechercher()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            {{ 'search.btn' | t }}
+          </button>
+        </div>
+      </div>
+
+      <div class="hero-trust hero-reveal hero-reveal-5">
+        <div class="trust-badge">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+          <span>{{ 'hero.trust1' | t }}</span>
+        </div>
+        <div class="trust-badge">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <span>{{ 'hero.trust2' | t }}</span>
+        </div>
+        <div class="trust-badge">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+          <span>{{ 'hero.trust3' | t }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="scroll-indicator" aria-hidden="true">
+      <div class="scroll-mouse"><div class="scroll-wheel"></div></div>
+      <span>{{ 'hero.scroll' | t }}</span>
+    </div>
+  </section>
+
+  <!-- ==================== PROPERTIES ==================== -->
+  <section class="properties-section">
+    <div class="container">
+      <div class="section-head" data-reveal>
+        <div class="section-tag">{{ 'properties.tag' | t }}</div>
+        <h2>{{ 'properties.title' | t }}</h2>
+        <p>{{ 'properties.subtitle' | t }}</p>
+      </div>
+
+      <div *ngIf="loading" class="props-grid">
+        <div *ngFor="let i of [1,2,3,4,5,6]" class="prop-skeleton">
+          <div class="skel-img"></div>
+          <div class="skel-body">
+            <div class="skel-line w80"></div>
+            <div class="skel-line w60"></div>
+            <div class="skel-line w40"></div>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="!loading" class="props-grid">
+        <div *ngFor="let a of annonces; let i = index" class="prop-card" [style.--stagger]="i" data-reveal>
+          <div class="prop-img">
+            <img *ngIf="a.medias?.length > 0" [src]="a.medias[0].url_fichier | assetUrl" [alt]="a.titre" loading="lazy" />
+            <div *ngIf="!a.medias?.length" class="prop-no-img">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#c8d4e0" stroke-width="1"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            </div>
+            <div class="prop-img-overlay"><span>{{ 'properties.view' | t }}</span></div>
+            <div class="prop-tag">{{ a.type_transaction }}</div>
+            <button class="prop-fav" aria-label="Ajouter aux favoris">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            </button>
+          </div>
+          <div class="prop-body">
+            <div class="prop-price">{{ a.prix | number }} <small>DT</small></div>
+            <h3 class="prop-title">{{ a.titre }}</h3>
+            <p class="prop-loc">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              {{ a.ville }}, {{ a.gouvernorat }}
+            </p>
+            <div class="prop-features">
+              <span *ngIf="a.nb_chambres">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 22V12M21 22V12M1 12h22M3 12V7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v5"/></svg>
+                {{ a.nb_chambres }} ch.
+              </span>
+              <span>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+                {{ a.superficie }} m²
+              </span>
+              <span class="prop-type">{{ a.type_bien }}</span>
+            </div>
+            <a [routerLink]="['/annonces', a.id]" class="prop-btn">
+              {{ 'properties.view' | t }}
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="!loading && annonces.length === 0" class="props-empty">
+        <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="#c8d4e0" stroke-width="1"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+        <p>{{ 'properties.empty' | t }}</p>
+      </div>
+
+      <div class="section-footer" data-reveal>
+        <a routerLink="/annonces" class="btn-outline">
+          {{ 'properties.viewAll' | t }}
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== TRUST MARQUEE ==================== -->
+  <div class="trust-strip" aria-hidden="true">
+    <div class="trust-track">
+      <span>{{ 'trust.verified' | t }}</span><span class="trust-dot">✦</span>
+      <span>{{ 'trust.transactions' | t }}</span><span class="trust-dot">✦</span>
+      <span>{{ 'trust.human' | t }}</span><span class="trust-dot">✦</span>
+      <span>{{ 'trust.network' | t }}</span><span class="trust-dot">✦</span>
+      <span>{{ 'trust.transparency' | t }}</span><span class="trust-dot">✦</span>
+      <span>{{ 'trust.expertise' | t }}</span><span class="trust-dot">✦</span>
+      <span>Tunisia</span><span class="trust-dot">✦</span>
+      <span>{{ 'trust.verified' | t }}</span><span class="trust-dot">✦</span>
+      <span>{{ 'trust.transactions' | t }}</span><span class="trust-dot">✦</span>
+      <span>{{ 'trust.human' | t }}</span><span class="trust-dot">✦</span>
+      <span>{{ 'trust.network' | t }}</span><span class="trust-dot">✦</span>
+      <span>{{ 'trust.transparency' | t }}</span><span class="trust-dot">✦</span>
+      <span>{{ 'trust.expertise' | t }}</span><span class="trust-dot">✦</span>
+      <span>Tunisia</span><span class="trust-dot">✦</span>
+    </div>
+  </div>
+
+  <!-- ==================== ABOUT ==================== -->
+  <section class="about-section" id="about">
+    <div class="container">
+      <div class="about-grid">
+        <div class="about-intro" data-reveal>
+          <div class="section-tag">{{ 'about.tag' | t }}</div>
+          <h2>{{ 'about.title' | t }}</h2>
+          <p class="about-lead">{{ 'about.lead' | t }}</p>
+          <p>{{ 'about.body' | t }}</p>
+          <a routerLink="/annonces" class="about-cta">
+            {{ 'about.cta' | t }}
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </a>
+        </div>
+
+        <div class="about-pillars">
+          <div class="pillar-card" data-reveal [style.--stagger]="0">
+            <div class="pillar-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+            </div>
+            <h4>{{ 'about.p1Title' | t }}</h4>
+            <p>{{ 'about.p1Desc' | t }}</p>
+          </div>
+          <div class="pillar-card" data-reveal [style.--stagger]="1">
+            <div class="pillar-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+            <h4>{{ 'about.p2Title' | t }}</h4>
+            <p>{{ 'about.p2Desc' | t }}</p>
+          </div>
+          <div class="pillar-card" data-reveal [style.--stagger]="2">
+            <div class="pillar-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+            </div>
+            <h4>{{ 'about.p3Title' | t }}</h4>
+            <p>{{ 'about.p3Desc' | t }}</p>
+          </div>
+          <div class="pillar-card" data-reveal [style.--stagger]="3">
+            <div class="pillar-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+            </div>
+            <h4>{{ 'about.p4Title' | t }}</h4>
+            <p>{{ 'about.p4Desc' | t }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== SERVICES ==================== -->
+  <section class="services-section" id="services">
+    <div class="container">
+      <div class="section-head" data-reveal>
+        <div class="section-tag">{{ 'svcSection.tag' | t }}</div>
+        <h2>{{ 'svcSection.title' | t }}</h2>
+        <p>{{ 'svcSection.subtitle' | t }}</p>
+      </div>
+
+      <div class="services-grid">
+        <div *ngFor="let s of services; let i = index"
+          class="service-card"
+          [routerLink]="['/services', s.slug]"
+          [style.--stagger]="i"
+          data-reveal>
+
+          <div class="svc-illustration" [ngClass]="'svc-' + s.slug">
+            <img class="svc-cover" [src]="s.image" [alt]="'svc.' + s.key + '.title' | t" loading="lazy" />
+            <span class="svc-price-badge">{{ 'svc.' + s.key + '.price' | t }}</span>
+          </div>
+
+          <div class="svc-content">
+            <h3>{{ 'svc.' + s.key + '.title' | t }}</h3>
+            <p>{{ 'svc.' + s.key + '.desc' | t }}</p>
+            <span class="svc-link">
+              {{ 'svcSection.learnMore' | t }}
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== MAP ==================== -->
+  <section class="map-section" data-reveal>
+    <div class="container">
+      <div class="section-head">
+        <div class="section-tag">{{ 'map.tag' | t }}</div>
+        <h2>{{ 'map.title' | t }}</h2>
+        <p>{{ 'map.subtitle' | t }}</p>
+      </div>
+    </div>
+    <div class="map-container">
+      <div id="home-map" class="home-leaflet-map"></div>
+      <div class="map-overlay-card">
+        <div class="map-card-icon">📍</div>
+        <strong>{{ annonces.length }} {{ translate.lang === 'fr' ? 'biens' : 'properties' }}</strong>
+        <p>{{ 'map.available' | t }}</p>
+        <a routerLink="/annonces" class="map-card-btn">{{ 'map.explore' | t }}</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== CONTACT ==================== -->
+  <section class="contact-section" id="contact" data-reveal>
+    <div class="container">
+      <div class="section-head">
+        <div class="section-tag">{{ 'contact.tag' | t }}</div>
+        <h2>{{ 'contact.title' | t }}</h2>
+        <p>{{ 'contact.subtitle' | t }}</p>
+      </div>
+
+      <div class="contact-grid">
+        <div class="contact-left">
+          <h3>{{ 'contact.leftTitle' | t }}</h3>
+          <p>{{ 'contact.leftDesc' | t }}</p>
+          <div class="contact-items">
+            <div class="contact-item">
+              <div class="c-icon">
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              </div>
+              <div>
+                <strong>{{ 'contact.availability' | t }}</strong>
+                <p>{{ 'contact.availabilityVal' | t }}</p>
+              </div>
+            </div>
+            <div class="contact-item">
+              <div class="c-icon">
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              </div>
+              <div>
+                <strong>{{ 'contact.emailLabel' | t }}</strong>
+                <p>contact&#64;Domomio.tn</p>
+              </div>
+            </div>
+            <div class="contact-item">
+              <div class="c-icon">
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              </div>
+              <div>
+                <strong>{{ 'contact.presence' | t }}</strong>
+                <p>{{ 'contact.presenceVal' | t }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="contact-right">
+          <div class="contact-form">
+            <div *ngIf="contactSucces" class="contact-success">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              <span>{{ 'contact.success' | t }}</span>
+            </div>
+
+            <ng-container *ngIf="!contactSucces">
+              <div class="form-row">
+                <div class="form-group">
+                  <label>{{ 'contact.formName' | t }}</label>
+                  <input type="text" [placeholder]="'contact.formNamePh' | t" [(ngModel)]="contactForm.nom" name="contact_nom" />
+                </div>
+                <div class="form-group">
+                  <label>{{ 'contact.formEmail' | t }}</label>
+                  <input type="email" [placeholder]="'contact.formEmailPh' | t" [(ngModel)]="contactForm.email" name="contact_email" />
+                </div>
+              </div>
+              <div class="form-group">
+                <label>{{ 'contact.formSubject' | t }}</label>
+                <input type="text" [placeholder]="'contact.formSubjectPh' | t" [(ngModel)]="contactForm.sujet" name="contact_sujet" />
+              </div>
+              <div class="form-group">
+                <label>{{ 'contact.formMessage' | t }}</label>
+                <textarea rows="5" [placeholder]="'contact.formMessagePh' | t" [(ngModel)]="contactForm.message" name="contact_message"></textarea>
+              </div>
+
+              <p *ngIf="contactErreur" class="contact-erreur">{{ contactErreur }}</p>
+
+              <button class="contact-submit" (click)="envoyerContact()" [disabled]="contactEnvoi">
+                <ng-container *ngIf="!contactEnvoi">
+                  {{ 'contact.send' | t }}
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                </ng-container>
+                <ng-container *ngIf="contactEnvoi">{{ 'contact.sending' | t }}</ng-container>
+              </button>
+            </ng-container>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== FOOTER ==================== -->
+  <footer class="footer" data-reveal>
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="footer-logo">
+            <img src="assets/domomio-logo.png" alt="Logo">
+          </div>
+          <p>{{ 'footer.desc' | t }}</p>
+          <div class="footer-social">
+            <a href="#" class="social-link" aria-label="Facebook">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+            </a>
+            <a href="#" class="social-link" aria-label="Instagram">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+            </a>
+            <a href="#" class="social-link" aria-label="LinkedIn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+            </a>
+          </div>
+        </div>
+
+        <div class="footer-col">
+          <h4>{{ 'footer.navTitle' | t }}</h4>
+          <ul>
+            <li><a routerLink="/">{{ 'footer.home' | t }}</a></li>
+            <li><a routerLink="/annonces">{{ 'footer.properties' | t }}</a></li>
+            <li><a (click)="scrollTo('services')" style="cursor:pointer">{{ 'footer.services' | t }}</a></li>
+            <li><a (click)="scrollTo('about')" style="cursor:pointer">{{ 'footer.about' | t }}</a></li>
+            <li><a (click)="scrollTo('contact')" style="cursor:pointer">{{ 'footer.contact' | t }}</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>{{ 'footer.servicesTitle' | t }}</h4>
+          <ul>
+            <li><a routerLink="/services/marketing">{{ 'svc.marketing.title' | t }}</a></li>
+            <li><a routerLink="/services/diaspora">{{ 'svc.diaspora.title' | t }}</a></li>
+            <li><a routerLink="/services/location-securisee">{{ 'svc.location_securisee.title' | t }}</a></li>
+            <li><a routerLink="/services/cle-en-main">{{ 'svc.cle_en_main.title' | t }}</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>{{ 'footer.accountTitle' | t }}</h4>
+          <ul>
+            <li><a routerLink="/login">{{ 'footer.login' | t }}</a></li>
+            <li><a routerLink="/register">{{ 'footer.register' | t }}</a></li>
+            <li><a routerLink="/register">{{ 'footer.becomeSeller' | t }}</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>{{ 'footer.copyright' | t }}</p>
+        <div class="footer-legal">
+          <a href="#">{{ 'footer.privacy' | t }}</a>
+          <a href="#">{{ 'footer.terms' | t }}</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+</div>
