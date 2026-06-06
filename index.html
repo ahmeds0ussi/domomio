@@ -104,5 +104,14 @@ function scrollToTopPage(e){e.preventDefault();window.scrollTo({top:0,behavior:'
 const revealObserver=new IntersectionObserver(entries=>{entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('is-visible');revealObserver.unobserve(entry.target);}})},{threshold:.2,rootMargin:'0px 0px -10% 0px'});document.querySelectorAll('[data-reveal]').forEach(el=>revealObserver.observe(el));
 document.querySelectorAll('.search-tabs button').forEach(btn=>btn.addEventListener('click',()=>{document.querySelectorAll('.search-tabs button').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}));
 </script>
+  <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-X1TCTXHENE"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-X1TCTXHENE');
+</script>
 </body>
 </html>
